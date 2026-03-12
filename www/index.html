@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>U-Transcribe | Real-time Speech</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: radial-gradient(circle at top right, #1e1b4b, #000000);
+            min-height: 100vh;
+            color: #f8fafc;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            border: 1px rgba(255, 255, 255, 0.1) solid;
+            border-radius: 24px;
+        }
+        .transcript-area {
+            height: calc(100vh - 380px);
+            scrollbar-width: thin;
+            scrollbar-color: rgba(99, 102, 241, 0.5) transparent;
+        }
+        .transcript-area::-webkit-scrollbar {
+            width: 6px;
+        }
+        .transcript-area::-webkit-scrollbar-thumb {
+            background-color: rgba(99, 102, 241, 0.5);
+            border-radius: 10px;
+        }
+        .pulse {
+            animation: pulse-animation 2s infinite;
+        }
+        @keyframes pulse-animation {
+            0% { box-shadow: 0 0 0 0px rgba(239, 68, 68, 0.7); }
+            100% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+        }
+        .glow-indigo {
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+        }
+    </style>
+</head>
+<body class="p-4 overflow-hidden">
+    <div class="max-w-md mx-auto h-full flex flex-col gap-6">
+        <!-- Header -->
+        <header class="flex items-center justify-between pt-6">
+            <div>
+                <h1 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">U-Transcribe</h1>
+                <p class="text-slate-400 text-sm">Real-time Bluetooth Transcription</p>
+            </div>
+            <div id="status-dot" class="w-3 h-3 rounded-full bg-slate-600"></div>
+        </header>
+
+        <!-- Device Info Card -->
+        <div class="glass p-5 flex flex-col gap-3 glow-indigo">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-indigo-500/20 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Active Input</p>
+                    <p id="device-name" class="text-sm font-medium text-slate-200">Checking for devices...</p>
+                </div>
+            </div>
+            <div class="h-px bg-white/10 w-full"></div>
+            <div class="flex justify-between items-center text-xs">
+                <span class="text-slate-400">Status: <span id="status-text" class="text-slate-200">Idle</span></span>
+                <span id="recording-time" class="text-slate-400 font-mono">00:00:00</span>
+            </div>
+        </div>
+
+        <!-- Transcript Area -->
+        <div class="glass p-6 flex-grow relative overflow-hidden flex flex-col">
+            <div class="text-xs text-slate-500 mb-2 uppercase tracking-widest font-bold">Transcript</div>
+            <div id="transcript" class="transcript-area overflow-y-auto pr-2 flex flex-col gap-3 text-lg leading-relaxed text-slate-300">
+                <p class="italic text-slate-500 text-base">Transcription will appear here...</p>
+            </div>
+            <div id="interim" class="text-indigo-400/60 font-medium text-lg mt-2 min-h-[1.5em]"></div>
+        </div>
+
+        <!-- Controls -->
+        <div class="pb-8 flex gap-4">
+            <button id="start-btn" class="flex-1 bg-indigo-600 hover:bg-indigo-500 active:scale-95 transition-all py-4 px-6 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Start Listening
+            </button>
+            <button id="stop-btn" class="hidden flex-1 bg-rose-600 hover:bg-rose-500 active:scale-95 transition-all py-4 px-6 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-rose-500/20">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H10a1 1 0 01-1-1v-4z" />
+                </svg>
+                Stop
+            </button>
+            <button id="clear-btn" class="p-4 bg-white/5 hover:bg-white/10 rounded-2xl transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

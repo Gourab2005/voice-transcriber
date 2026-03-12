@@ -1,0 +1,32 @@
+# Node modules
+node_modules/
+
+# Capacitor generated files
+android/.gradle/
+android/local.properties
+android/app/build/
+android/build/
+
+# Android build outputs
+*.apk
+*.aab
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Environment variables
+.env
+
+# Temporary files
+*.tmp
+*.temp
