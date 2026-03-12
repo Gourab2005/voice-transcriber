@@ -1,3 +1,4 @@
+// U-Transcribe | Last Updated: 2026-03-12
 const startBtn = document.getElementById('start-btn');
 const stopBtn = document.getElementById('stop-btn');
 const clearBtn = document.getElementById('clear-btn');
